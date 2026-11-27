@@ -20,10 +20,10 @@ public class MenuPrincipal extends javax.swing.JFrame {
     private JButton btnDepartamentos, btnHabitaciones, btnEmpleados, btnHuespedes, btnReservas, btnReportes;
     
     private DepartamentoController departamentoController = new DepartamentoController();
-    private EmpleadoController empleadoController = new EmpleadoController();
-    private HabitacionController habitacionController = new HabitacionController();
+    private EmpleadoController empleadoController = new EmpleadoController(departamentoController);
     private HuespedController huespedController = new HuespedController();
-    private ReservaController reservaController = new ReservaController();
+    private HabitacionController habitacionController = new HabitacionController();  
+    private ReservaController reservaController = new ReservaController(huespedController,empleadoController,habitacionController);    
     
     public MenuPrincipal() 
     {
@@ -228,6 +228,7 @@ private void colocarFondo()
     @SuppressWarnings("unchecked")
     // <editor-fold defaultstate="collapsed" desc="Generated Code">//GEN-BEGIN:initComponents
     private void initComponents() {
+
         pnlEncabezado = new javax.swing.JPanel();
         jLabel1 = new javax.swing.JLabel();
         jLabel2 = new javax.swing.JLabel();
@@ -239,7 +240,7 @@ private void colocarFondo()
         jButton5 = new javax.swing.JButton();
         jLabel5 = new javax.swing.JLabel();
 
-        setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
+        setDefaultCloseOperation(javax.swing.WindowConstants.DISPOSE_ON_CLOSE);
         setTitle("Indigo Loft - Menú Principal");
         setResizable(false);
         setSize(new java.awt.Dimension(924, 700));
@@ -248,6 +249,7 @@ private void colocarFondo()
         pnlEncabezado.setBackground(new java.awt.Color(35, 59, 87));
         pnlEncabezado.setBorder(javax.swing.BorderFactory.createEmptyBorder(12, 18, 12, 18));
         pnlEncabezado.setLayout(new java.awt.GridLayout(2, 1, 0, 2));
+
         jLabel1.setFont(new java.awt.Font("SansSerif", 1, 16)); // NOI18N
         jLabel1.setForeground(new java.awt.Color(196, 155, 92));
         jLabel1.setText("INDIGO LOFT · MENÚ PRINCIPAL");

@@ -11,30 +11,64 @@ import java.io.FileWriter;
 import java.io.PrintWriter;
 import java.io.IOException;
 import java.util.ArrayList;
+import DAO.ReservaDAO;
+import java.sql.SQLException;
 
 public class ReservaController 
 {
-    public ArrayList<Reserva>ListaReservas;
-    public ReservaController()
+    public ArrayList<Reserva> ListaReservas;
+    private final ReservaDAO dao = new ReservaDAO();
+    
+    public ReservaController(HuespedController huespedes,EmpleadoController empleados,HabitacionController habitaciones)
     {
-        ListaReservas = new ArrayList<>();
+        try
+        {
+            ListaReservas = dao.Listar(huespedes, empleados, habitaciones);
+            for(Reserva r : ListaReservas)
+            {
+                r.getCliente().AgregarReserva(r);
+            }
+        }
+        catch(SQLException e)
+        {
+            throw new IllegalStateException("Error al cargar reservas: " + e.getMessage(), e);
+        }
     }
-    public Reserva BuscaReserva(String cod)
+    
+    public Reserva BuscaReserva(String codigo)
     {
         for(Reserva r : ListaReservas)
         {
-            if(cod.equalsIgnoreCase(r.getCod_reserva()))
+            if(r.getCod_reserva().equalsIgnoreCase(codigo))
             {
                 return r;
             }
         }
         return null;
     }
+    
     public void AñadirReserva(Reserva r)
     {
-        if(BuscaReserva(r.getCod_reserva())==null)
+        if(r == null)
         {
+            throw new IllegalArgumentException("La reserva no puede ser nula.");
+        }
+        if(BuscaReserva(r.getCod_reserva()) != null)
+        {
+            throw new IllegalArgumentException("La reserva ya existe.");
+        }
+        try
+        {
+            dao.Registrar(r);
             ListaReservas.add(r);
+            r.getCliente().AgregarReserva(r);
+        }
+        catch(SQLException e)
+        {
+            System.out.println("Codigo SQL: " + e.getErrorCode());
+            System.out.println("Estado SQL: " + e.getSQLState());
+            e.printStackTrace();
+            throw new IllegalArgumentException("Error al registrar: " + e.getMessage(), e);
         }
     }
     
@@ -146,8 +180,7 @@ public class ReservaController
             r.AñadirHabitacion(h);
         }
         //recien aqui se registra
-        ListaReservas.add(r);
-        cliente.AgregarReserva(r);
+        AñadirReserva(r);
         return r;
     }
     //U de reservas: cambia fechas y habitaciones validando RN-04, RN-06 y que siga Confirmada
@@ -169,7 +202,19 @@ public class ReservaController
                 throw new IllegalArgumentException("Error: La habitación "+h.getNro_habitacion()+" ya tiene una reserva que se cruza con esas fechas.");
             }
         }
-        r.Modificar(inicio, fin, habitaciones);
+        //
+        Reserva copia = new Reserva(r.getCod_reserva(),r.getFecha_inicio(),r.getFecha_fin(),r.getFecha_salida_real(),r.getEstadoReserva());
+        copia.Modificar(inicio, fin, habitaciones);
+
+        try
+        {
+            dao.Actualizar(copia);
+            r.Modificar(inicio, fin, habitaciones);
+        }
+        catch(SQLException e)
+        {
+            throw new IllegalArgumentException("Error al modificar: " + e.getMessage(), e);
+        }
     }
     //D de reservas: elimina la reserva del sistema y del historial del huesped. No se puede si esta En curso.
     public void EliminarReserva(Reserva r)
@@ -182,10 +227,91 @@ public class ReservaController
         {
             throw new IllegalArgumentException("Error: No se puede eliminar una reserva En curso. Haga primero el check-out.");
         }
-        ListaReservas.remove(r);
-        r.getCliente().getHisorialReservas().remove(r);
+        try
+        {
+            dao.Eliminar(r);
+            ListaReservas.remove(r);
+            r.getCliente().getHisorialReservas().remove(r);
+        }
+        catch(SQLException e)
+        {
+            throw new IllegalArgumentException("Error al eliminar: " + e.getMessage(), e);
+        }
     }
-    //reserva (no cancelada) que ocupa la habitacion en una fecha concreta, o null si no hay
+    public void CheckIn(Reserva r, Recepcionista rec)
+    {
+        if(r == null || rec == null)
+        {
+            throw new IllegalArgumentException("Debe seleccionar una reserva y un recepcionista.");
+        }
+        if(!Reserva.CONFIRMADA.equals(r.getEstadoReserva()))
+        {
+            throw new IllegalArgumentException("La reserva debe estar confirmada.");
+        }
+        if(!LocalDate.now().equals(r.getFecha_inicio()))
+        {
+            throw new IllegalArgumentException("El check-in debe realizarse el dia de entrada.");
+        }
+        for(Habitacion h : r.getListaHabitaciones())
+        {
+            if(!"Disponible".equalsIgnoreCase(h.getEstado()))
+            {
+                throw new IllegalArgumentException("Habitacion no disponible: "+ h.getNro_habitacion());
+            }
+        }
+        try
+        {
+            dao.CambiarEstado(r,Reserva.CONFIRMADA,Reserva.EN_CURSO,null,"Disponible","Ocupada");
+            r.RealizarCheckIn(rec);
+        } 
+        catch(SQLException e)
+        {
+            throw new IllegalArgumentException("Error en check-in: " + e.getMessage(), e);
+        }
+    }    
+    
+    public void CheckOut(Reserva r, Recepcionista rec)
+    {
+        if(r == null || rec == null)
+        {
+            throw new IllegalArgumentException("Debe seleccionar una reserva y un recepcionista.");
+        }
+        if(!Reserva.EN_CURSO.equals(r.getEstadoReserva()))
+        {
+            throw new IllegalArgumentException("La reserva debe estar En curso.");
+        }
+        try
+        {
+            dao.CambiarEstado(r,Reserva.EN_CURSO,Reserva.FINALIZADA,LocalDate.now(),"Ocupada","Limpieza");
+            r.RealizarCheckOut(rec);
+        }
+        catch(SQLException e)
+        {
+            throw new IllegalArgumentException("Error en check-out: " + e.getMessage(), e);
+        }
+    }
+    //
+    public void CancelarReserva(Reserva r)
+    {
+        if(r == null)
+        {
+            throw new IllegalArgumentException("Debe seleccionar una reserva.");
+        }
+        if(!Reserva.CONFIRMADA.equals(r.getEstadoReserva()))
+        {
+            throw new IllegalArgumentException("Solo se pueden cancelar reservas confirmadas.");
+        }
+        try
+        {
+            dao.CambiarEstado(r,Reserva.CONFIRMADA,Reserva.CANCELADA,null,null,null);
+            r.Cancelar();
+        }
+        catch(SQLException e)
+        {
+            throw new IllegalArgumentException("Error al cancelar: " + e.getMessage(), e);
+        }
+    }
+    
     public Reserva ReservaDeHabitacionEnFecha(Habitacion h, LocalDate fecha)
     {
         for(Reserva r : ListaReservas)

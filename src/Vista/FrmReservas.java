@@ -77,8 +77,8 @@ public class FrmReservas extends javax.swing.JFrame
                 btnBuscar, btnTodas, btnCheckIn, btnCheckOut, btnModificar, btnCancelarReserva,
                 btnEliminarReserva, btnDetalle, btnCerrarLista);
 
-        // documento del huesped: solo numeros, hasta 20 (DNI 8 · PAS 9 · CE 20)
-        UIUtil.soloDigitos(txtDocHuesped, 20);
+        // documento del huesped: solo numeros, hasta 10 (DNI 8 · PAS 9 · CE 10)
+        UIUtil.soloDigitos(txtDocHuesped, 10);
 
         setLocationRelativeTo(null);
         cargarRecepcionistas();
@@ -948,7 +948,7 @@ public class FrmReservas extends javax.swing.JFrame
             return;
         }
         try {
-            r.RealizarCheckIn(rec);
+            reservaController.CheckIn(r, rec);           
             cargarReservas();
             
             //muestra la hora real del check in
@@ -988,7 +988,7 @@ public class FrmReservas extends javax.swing.JFrame
         }
         try
         {
-            r.RealizarCheckOut(rec);
+            reservaController.CheckOut(r, rec);
             java.time.LocalDate fechaOut = (r.getFecha_salida_real() != null)
                     ? r.getFecha_salida_real()
                     : r.getFecha_fin();
@@ -1122,7 +1122,7 @@ public class FrmReservas extends javax.swing.JFrame
         }
         try
         {
-            r.Cancelar();
+            reservaController.CancelarReserva(r);
             cargarReservas();
         }
         catch (IllegalArgumentException ex)

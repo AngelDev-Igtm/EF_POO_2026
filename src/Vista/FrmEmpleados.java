@@ -798,6 +798,8 @@ import javax.swing.table.DefaultTableModel;
             asignarDatoExtra(nuevoEmpleado);
             Departamento dep = departamentoObligatorio();
             Empleado jefe = obtenerJefeSeleccionado();
+            nuevoEmpleado.setDepartamento(dep);
+            nuevoEmpleado.setJefe(jefe);
 
             // documento repetido -> se marca el campo del documento
             UIUtil.validar(txtNroDoc, "Nro documento", () -> empleadoController.AñadirEmpleado(nuevoEmpleado));
@@ -825,10 +827,17 @@ import javax.swing.table.DefaultTableModel;
             return;
         }
 
-        if (UIUtil.confirmar(this, "¿Está seguro de eliminar a " + emp.getNombre() + " " + emp.getApellido_pat() + "?",
-                "Confirmar eliminación")) {
-            // se quitan todas las referencias al empleado para no dejar datos colgados
-            empleadoController.ListaEmpleados.remove(emp);
+        if (UIUtil.confirmar(this, "¿Está seguro de eliminar a " + emp.getNombre() + " " + emp.getApellido_pat() + "?","Confirmar eliminación")) 
+        {
+            try
+            {
+                empleadoController.EliminarEmpleado(emp);
+            }
+            catch(IllegalArgumentException e)
+            {
+                UIUtil.mostrarError(this, e);
+                return;
+            }
             if (emp.getDepartamento() != null) {
                 emp.getDepartamento().QuitarEmpleado(emp);
             }
@@ -932,10 +941,24 @@ import javax.swing.table.DefaultTableModel;
             else { copia = new Recepcionista(); }
             asignarDatosPersonales(copia, false);
             asignarDatoExtra(copia);
+            
             Departamento dep = departamentoObligatorio();
             Empleado nuevoJefe = obtenerJefeSeleccionado();
             Empleado jefeAnterior = emp.getJefe();
-            cambiarJefe(emp, nuevoJefe);    // valida propio jefe y jerarquia circular
+            
+            for(Empleado j = nuevoJefe; j != null; j = j.getJefe())
+            {
+                if(j == emp)
+                {
+                    throw new IllegalArgumentException("No se puede crear una jerarquía circular.");
+                }
+            }
+            copia.setTipo_doc(emp.getTipo_doc());
+            copia.setNro_doc(emp.getNro_doc());
+            copia.setDepartamento(dep);
+            copia.setJefe(nuevoJefe);
+            empleadoController.ActualizarEmpleado(copia);
+            cambiarJefe(emp, nuevoJefe);
 
             emp.setNombre(copia.getNombre());
             emp.setApellido_pat(copia.getApellido_pat());
@@ -951,7 +974,8 @@ import javax.swing.table.DefaultTableModel;
             UIUtil.mostrarInfo(this, "Empleado actualizado correctamente."
                     + (jefeAnterior != nuevoJefe ? "\nSe actualizó también la lista de subordinados del jefe." : ""));
             limpiarCampos();
-        } catch (IllegalArgumentException e) {
+        } catch (IllegalArgumentException e) 
+        {
             UIUtil.mostrarError(this, e);
         }
     }//GEN-LAST:event_btnActualizarActionPerformed

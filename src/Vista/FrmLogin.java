@@ -1,21 +1,70 @@
 package Vista;
 
+import Controladores.LoginController;
+import javax.swing.JOptionPane;
+import java.util.Arrays;
+
 public class FrmLogin extends javax.swing.JFrame {
     
     private static final java.util.logging.Logger logger = java.util.logging.Logger.getLogger(FrmLogin.class.getName());
     private char caracterOculto;
+    private final LoginController loginController = new LoginController();
 
-    public FrmLogin() {
+    @SuppressWarnings("unchecked")
+    public FrmLogin()
+    {
         initComponents();
         caracterOculto = jPasswordField1.getEchoChar();
-        // mismo estilo que la pantalla Reservas: franja azul con titulo dorado y fondo crema
         getContentPane().setBackground(UIUtil.FONDO);
         UIUtil.cursorMano(jButton1, jCheckBox1);
         getRootPane().setDefaultButton(jButton1);
-        setLocationRelativeTo(null);   // ventana centrada en la pantalla
+        jButton1.addActionListener(e -> IniciarSesion());
+        setLocationRelativeTo(null);
     }
+    private void IniciarSesion()
+    {
+        String usuario = jTextField1.getText().trim();
+        char[] clave = jPasswordField1.getPassword();
+        try
+        {
+            if(usuario.isEmpty() || clave.length == 0)
+            {
+            JOptionPane.showMessageDialog(this,
+                "Debe completar todos los campos.",
+                "Campos incompletos",
+                JOptionPane.WARNING_MESSAGE);
+            return;
+        }
 
-    @SuppressWarnings("unchecked")
+        if(loginController.ValidarCredenciales(
+                usuario, new String(clave)))
+        {
+            new MenuPrincipal();
+            this.dispose();
+        }
+        else
+        {
+            JOptionPane.showMessageDialog(this,
+                "Usuario o contraseña incorrectos.",
+                "Acceso denegado",
+                JOptionPane.ERROR_MESSAGE);
+
+            jPasswordField1.setText("");
+            jPasswordField1.requestFocus();
+        }
+    }
+    catch(RuntimeException e)
+    {
+        JOptionPane.showMessageDialog(this,
+            e.getMessage(),
+            "Error del sistema",
+            JOptionPane.ERROR_MESSAGE);
+    }
+    finally
+    {
+        Arrays.fill(clave, '\0');
+    }
+}
     // <editor-fold defaultstate="collapsed" desc="Generated Code">//GEN-BEGIN:initComponents
     private void initComponents() {
         java.awt.GridBagConstraints gridBagConstraints;

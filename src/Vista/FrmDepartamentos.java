@@ -73,6 +73,7 @@ public class FrmDepartamentos extends javax.swing.JFrame
     private void initComponents() {
         java.awt.GridBagConstraints gridBagConstraints;
 
+        jLabel1 = new javax.swing.JLabel();
         pnlEncabezado = new javax.swing.JPanel();
         lblTitulo = new javax.swing.JLabel();
         lblSubtitulo = new javax.swing.JLabel();
@@ -102,6 +103,8 @@ public class FrmDepartamentos extends javax.swing.JFrame
         jTable1 = new javax.swing.JTable();
         lblAyuda = new javax.swing.JLabel();
 
+        jLabel1.setText("jLabel1");
+
         setDefaultCloseOperation(javax.swing.WindowConstants.DISPOSE_ON_CLOSE);
         setTitle("Gestión de Departamentos - Indigo Loft");
         setMinimumSize(new java.awt.Dimension(900, 560));
@@ -110,6 +113,7 @@ public class FrmDepartamentos extends javax.swing.JFrame
         pnlEncabezado.setBackground(new java.awt.Color(35, 59, 87));
         pnlEncabezado.setBorder(javax.swing.BorderFactory.createEmptyBorder(12, 18, 12, 18));
         pnlEncabezado.setLayout(new java.awt.GridLayout(2, 1, 0, 2));
+
         lblTitulo.setFont(new java.awt.Font("SansSerif", 1, 16)); // NOI18N
         lblTitulo.setForeground(new java.awt.Color(196, 155, 92));
         lblTitulo.setText("GESTIÓN DE DEPARTAMENTOS");
@@ -125,9 +129,11 @@ public class FrmDepartamentos extends javax.swing.JFrame
         pnlFormulario.setOpaque(false);
         pnlFormulario.setBorder(javax.swing.BorderFactory.createEmptyBorder(12, 12, 12, 6));
         pnlFormulario.setLayout(new java.awt.BorderLayout());
-        pnlDatos.setOpaque(false);
+
         pnlDatos.setBorder(javax.swing.BorderFactory.createTitledBorder(null, "Datos del departamento", javax.swing.border.TitledBorder.DEFAULT_JUSTIFICATION, javax.swing.border.TitledBorder.DEFAULT_POSITION, new java.awt.Font("SansSerif", 1, 12), new java.awt.Color(35, 59, 87))); // NOI18N
+        pnlDatos.setOpaque(false);
         pnlDatos.setLayout(new java.awt.GridBagLayout());
+
         jLabel3.setFont(new java.awt.Font("SansSerif", 0, 12)); // NOI18N
         jLabel3.setText("ID del departamento (DEP-XXX)");
         gridBagConstraints = new java.awt.GridBagConstraints();
@@ -243,6 +249,7 @@ public class FrmDepartamentos extends javax.swing.JFrame
 
         pnlSurForm.setOpaque(false);
         pnlSurForm.setLayout(new java.awt.BorderLayout());
+
         lblNota.setFont(new java.awt.Font("SansSerif", 0, 12)); // NOI18N
         lblNota.setText("<html><font color='#B71C1C'>*</font> Campo obligatorio</html>");
         lblNota.setBorder(javax.swing.BorderFactory.createEmptyBorder(4, 10, 0, 0));
@@ -251,6 +258,7 @@ public class FrmDepartamentos extends javax.swing.JFrame
         pnlBotonesForm.setOpaque(false);
         pnlBotonesForm.setBorder(javax.swing.BorderFactory.createEmptyBorder(8, 0, 0, 0));
         pnlBotonesForm.setLayout(new java.awt.GridLayout(2, 3, 6, 6));
+
         jButton1.setFont(new java.awt.Font("SansSerif", 1, 12)); // NOI18N
         jButton1.setBackground(new java.awt.Color(46, 125, 50));
         jButton1.setForeground(new java.awt.Color(255, 255, 255));
@@ -326,9 +334,11 @@ public class FrmDepartamentos extends javax.swing.JFrame
         pnlListado.setOpaque(false);
         pnlListado.setBorder(javax.swing.BorderFactory.createEmptyBorder(12, 6, 12, 12));
         pnlListado.setLayout(new java.awt.BorderLayout(0, 8));
+
         pnlTabla.setOpaque(false);
         pnlTabla.setBorder(javax.swing.BorderFactory.createTitledBorder(null, "Departamentos registrados", javax.swing.border.TitledBorder.DEFAULT_JUSTIFICATION, javax.swing.border.TitledBorder.DEFAULT_POSITION, new java.awt.Font("SansSerif", 1, 12), new java.awt.Color(35, 59, 87))); // NOI18N
         pnlTabla.setLayout(new java.awt.BorderLayout());
+
         jTable1.setModel(new javax.swing.table.DefaultTableModel(
             new Object [][] {
 
@@ -557,13 +567,13 @@ public class FrmDepartamentos extends javax.swing.JFrame
             UIUtil.validar(jTextField3, "Presupuesto mensual", () -> aux.setPresupuesto_mensual(presupuesto));
             Gerente gerente = GerenteDelCombo();
             ValidarGerenteLibre(gerente, departamento);
-
-            departamento.setNombre_departamento(aux.getNombre_departamento());
-            departamento.setPresupuesto_mensual(aux.getPresupuesto_mensual());
-            if (gerente != null)     // HU-HOT-004: actualizar el gerente del departamento
-            {
-                AsignarGerente(departamento, gerente);
-            }
+            
+            Departamento actualizado = new Departamento(departamento.getId_departamento());
+            actualizado.setNombre_departamento(aux.getNombre_departamento());
+            actualizado.setPresupuesto_mensual(aux.getPresupuesto_mensual());
+            actualizado.setGerente_a_cargo(departamento.getGerente_a_cargo());
+            
+            departamentoController.ActualizarDepartamento(actualizado);
             CargarTablaDepartamentos();
             UIUtil.mostrarInfo(this, "Departamento actualizado correctamente.");
             LimpiarFormulario();
@@ -601,10 +611,17 @@ public class FrmDepartamentos extends javax.swing.JFrame
         {
             return;
         }
-        departamentoController.EliminarDepartamento(departamento.getId_departamento());
-        CargarTablaDepartamentos();
-        LimpiarFormulario();
-        UIUtil.mostrarInfo(this, "Departamento eliminado correctamente.");
+        try
+        {
+            departamentoController.EliminarDepartamento(departamento.getId_departamento());
+            CargarTablaDepartamentos();
+            LimpiarFormulario();
+            UIUtil.mostrarInfo(this,"Departamento eliminado correctamente.");
+        }
+        catch (IllegalArgumentException e)
+        {
+            UIUtil.mostrarError(this, e);
+        }
     }//GEN-LAST:event_jButton3ActionPerformed
 
     private void btnCerrarActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnCerrarActionPerformed
@@ -657,6 +674,7 @@ public class FrmDepartamentos extends javax.swing.JFrame
     private javax.swing.JButton jButton4;
     private javax.swing.JButton jButton5;
     private javax.swing.JComboBox<String> jComboBox1;
+    private javax.swing.JLabel jLabel1;
     private javax.swing.JLabel jLabel3;
     private javax.swing.JLabel jLabel4;
     private javax.swing.JLabel jLabel5;

@@ -497,18 +497,31 @@ public class FmrHabitaciones extends javax.swing.JFrame {
             boolean valorExtra = cmbDatoExtra.getSelectedItem().toString().equals("SI");
 
             // se valida el precio en un objeto auxiliar antes de cambiar nada (asi el estado no queda a medias)
-            UIUtil.validar(txtPrecioNoche, "Precio por noche", () -> new HabitacionSimple().setPrecio_noche(precio));
-            UIUtil.validar(cmbEstado, "Estado", () -> h.setEstado(estado));
-            h.setPrecio_noche(precio);
-            if (h instanceof HabitacionSimple) {
-                ((HabitacionSimple) h).setTieneVistaCalle(valorExtra);
-            } else if (h instanceof Suite) {
-                ((Suite) h).setTieneJacuzzi(valorExtra);
+            Habitacion actualizada;
+            if(h instanceof HabitacionSimple)
+            {
+                HabitacionSimple simple = new HabitacionSimple();
+                simple.setTieneVistaCalle(valorExtra);
+                actualizada = simple;
             }
+            else
+            {
+                Suite suite = new Suite();
+                suite.setTieneJacuzzi(valorExtra);
+                actualizada = suite;
+            }
+            actualizada.setNro_habitacion(nro);
+
+            UIUtil.validar(txtPrecioNoche, "Precio por noche",() -> actualizada.setPrecio_noche(precio));
+            UIUtil.validar(cmbEstado, "Estado",() -> actualizada.setEstado(estado));
+            
+            habitacionController.ActualizarHabitacion(actualizada);
             cargarTablaHabitaciones();
             UIUtil.mostrarInfo(this, "Habitación actualizada correctamente.");
             limpiarCampos();
-        } catch (IllegalArgumentException e) {
+        } 
+        catch (IllegalArgumentException e) 
+        {
             UIUtil.mostrarError(this, e);
         }
     }//GEN-LAST:event_btnActualizarActionPerformed
@@ -537,7 +550,15 @@ public class FmrHabitaciones extends javax.swing.JFrame {
             return;
         }
         if (UIUtil.confirmar(this, "¿Está seguro de eliminar la habitación Nro. " + h.getNro_habitacion() + "?", "Confirmar eliminación")) {
-            habitacionController.ListaHabitaciones.remove(h);
+            try
+            {
+                habitacionController.EliminarHabitacion(h.getNro_habitacion());
+            }
+            catch(IllegalArgumentException e)
+            {
+                UIUtil.mostrarError(this, e);
+                return;
+            }
             cargarTablaHabitaciones();
             limpiarCampos();
             UIUtil.mostrarInfo(this, "Habitación eliminada correctamente.");

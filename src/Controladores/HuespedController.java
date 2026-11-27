@@ -5,14 +5,24 @@ import java.util.ArrayList;
 import java.io.FileWriter;
 import java.io.PrintWriter;
 import java.io.IOException;
+import DAO.HuespedDAO;
+import java.sql.SQLException;
 
 public class HuespedController 
 {
-    public ArrayList<Huesped>ListaHuespedes;
+    public ArrayList<Huesped> ListaHuespedes;
+    private final HuespedDAO dao = new HuespedDAO();
     public HuespedController()
     {
-        ListaHuespedes = new ArrayList<>();
+        try
+        {
+            ListaHuespedes = dao.Listar();
+        }
+        catch(SQLException e)
+        {
+            throw new IllegalStateException("Error al cargar huespedes: " + e.getMessage(), e);
     }
+}
     public Huesped Buscarhuesped(String doc)
     {
         for(Huesped h : ListaHuespedes)
@@ -24,21 +34,27 @@ public class HuespedController
         }
         return null;
     }
+    
     public void AñadirHuesped(Huesped h)
     {
         if(h == null)
-         {
-            throw new IllegalArgumentException("Error: El huesped no puede ser nulo.");
-         }
-        if(Buscarhuesped(h.getNro_doc()) == null)
-         {
-           ListaHuespedes.add(h);
-         }
-        else
-         {
-             throw new IllegalArgumentException("Error: Ya existe un huesped con ese documento.");
-         }
-    }
+        {
+            throw new IllegalArgumentException("El huesped no puede ser nulo.");
+        }
+        if(Buscarhuesped(h.getNro_doc()) != null)
+        {
+            throw new IllegalArgumentException("Ya existe un huesped con ese documento.");
+        }
+        try
+        {
+            dao.Registrar(h);
+            ListaHuespedes.add(h);
+        }
+        catch(SQLException e)
+        {
+            throw new IllegalArgumentException("Error al registrar: " + e.getMessage(), e);
+        }
+}
     //REQ: modificar un huesped. El documento (tipo y numero) identifica al huesped y no se cambia;
     //el historial de reservas se conserva. 'datos' es un Huesped ya validado con los nuevos valores.
     public void ActualizarHuesped(Huesped datos)
@@ -51,6 +67,14 @@ public class HuespedController
         if(existente == null)
         {
             throw new IllegalArgumentException("Error: No existe un huesped con ese documento.");
+        }
+        try
+        {
+            dao.Actualizar(datos);
+        }
+        catch(SQLException e)
+        {
+            throw new IllegalArgumentException("Error al actualizar: " + e.getMessage(), e);
         }
         existente.setNombre(datos.getNombre());
         existente.setApellido_pat(datos.getApellido_pat());
@@ -74,7 +98,15 @@ public class HuespedController
             throw new IllegalArgumentException("Error: No se puede eliminar al huesped porque tiene "
                     + h.getHisorialReservas().size() + " reserva(s) asociada(s). Elimine primero esas reservas.");
         }
-        ListaHuespedes.remove(h);
+        try
+        {
+            dao.Eliminar(h.getNro_doc());
+            ListaHuespedes.remove(h);
+        }
+        catch(SQLException e)
+        {
+            throw new IllegalArgumentException("Error al eliminar: " + e.getMessage(), e);
+        }
     }
     public Boolean EstaVacia()
     {

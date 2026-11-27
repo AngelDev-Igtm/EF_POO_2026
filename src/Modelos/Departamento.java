@@ -21,6 +21,16 @@ public class Departamento
         
         this.ListaEmpleados = new ArrayList<>();
     }
+    
+    public Departamento(String id_departamento)
+    {
+        if (id_departamento == null || id_departamento.trim().isEmpty())
+        {
+            throw new IllegalArgumentException("El ID del departamento no puede estar vacío.");
+        }
+        this.id_departamento = id_departamento;
+        this.ListaEmpleados = new ArrayList<>();
+    }
 
     public String getId_departamento() {
         return id_departamento;

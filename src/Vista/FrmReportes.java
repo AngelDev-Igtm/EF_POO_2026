@@ -62,7 +62,7 @@ public class FrmReportes extends javax.swing.JFrame
 
         // ajustes que el diseñador visual no cubre
         getContentPane().setBackground(UIUtil.FONDO);
-        UIUtil.soloDigitos(txtDoc, 20);   // documento del huesped: solo numeros (DNI 8 · PAS 9 · CE 20)
+        UIUtil.soloDigitos(txtDoc, 10);   // documento del huesped: solo numeros (DNI 8 · PAS 9 · CE 10)
         UIUtil.estilizarTabla(tabla);
         scrollTabla.getViewport().setBackground(Color.WHITE);
         UIUtil.configurarSpinnerFecha(spDesde, LocalDate.now());

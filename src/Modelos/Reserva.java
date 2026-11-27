@@ -42,6 +42,15 @@ public class Reserva
         
         ListaHabitaciones = new ArrayList<>();
     }
+    
+    public Reserva(String codigo, LocalDate inicio,LocalDate fin, LocalDate salidaReal, String estado)
+    {
+        this();
+        this.cod_reserva = codigo;
+        this.fecha_inicio = inicio;
+        this.fecha_fin = fin;this.fecha_salida_real = salidaReal;
+        this.estadoReserva = estado;
+    }
 
     public String getCod_reserva() {
         return cod_reserva;
@@ -142,6 +151,12 @@ public class Reserva
             throw new IllegalArgumentException("Error: La habitación "+h.getNro_habitacion()+" ya está en la reserva.");
         }
         ListaHabitaciones.add(h);
+    }
+    
+    public void restaurarFactura(Factura factura)
+    {
+        this.factura = factura;
+        factura.setReserva(this);
     }
     
     //monto de la reserva = noches x precio por noche (sin IGV)

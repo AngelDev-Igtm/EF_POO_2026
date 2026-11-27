@@ -7,13 +7,28 @@ import java.io.PrintWriter;
 import java.io.IOException;
 import java.util.ArrayList;
 import Modelos.Gerente;
+import DAO.EmpleadoDAO;
+import java.sql.SQLException;
 
 public class EmpleadoController 
 {
     public ArrayList<Empleado> ListaEmpleados;
+    private final EmpleadoDAO dao = new EmpleadoDAO();
+    
     public EmpleadoController()
     {
-        ListaEmpleados = new ArrayList<>();
+        this(new DepartamentoController());
+    }
+    public EmpleadoController(DepartamentoController departamentos)
+    {
+        try
+        {
+            ListaEmpleados = dao.Listar(departamentos.ListaDepartamentos);
+        }
+        catch(SQLException e)
+        {
+            throw new IllegalStateException("Error al cargar empleados: " + e.getMessage(), e);
+        }
     }
     public Empleado BuscarEmpleado(String doc)
     {
@@ -26,18 +41,55 @@ public class EmpleadoController
         }
         return null;
     }
+    
     public void AñadirEmpleado(Empleado e)
     {
         if(e == null)
-         {
-           throw new IllegalArgumentException("El empleado no puede ser nulo.");
-         }
-
+        {
+            throw new IllegalArgumentException("El empleado no puede ser nulo.");
+        }
         if(BuscarEmpleado(e.getNro_doc()) != null)
-         {
-           throw new IllegalArgumentException("Ya existe un empleado con ese documento.");
-         }
-        ListaEmpleados.add(e);
+        {
+            throw new IllegalArgumentException("Ya existe un empleado con ese documento.");
+        }
+        try
+        {
+            dao.Registrar(e);
+            ListaEmpleados.add(e);
+        }
+        catch(SQLException ex)
+        {
+            throw new IllegalArgumentException(ex.getMessage(), ex);
+        }
+    }
+    
+    public void ActualizarEmpleado(Empleado e)
+    {
+        try
+        {
+            dao.Actualizar(e);
+        }
+        catch(SQLException ex)
+        {
+            throw new IllegalArgumentException(ex.getMessage(), ex);
+        }
+    }
+    
+    public void EliminarEmpleado(Empleado e)
+    {
+        try
+        {
+            dao.Eliminar(e);
+            ListaEmpleados.remove(e);
+        }
+        catch(SQLException ex)
+        {
+            if(ex.getErrorCode() == 547)
+            {
+                throw new IllegalArgumentException("No se puede eliminar al empleado porque " + "tiene registros asociados en el sistema.", ex);
+            }
+            throw new IllegalArgumentException("Error al eliminar el empleado: "+ ex.getMessage(), ex);
+        }
     }
     public Boolean EstaVacia()
     {

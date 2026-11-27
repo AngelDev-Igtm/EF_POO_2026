@@ -418,18 +418,18 @@ public final class UIUtil
     public static void soloDigitos(JTextField campo, int maximo)
     {
         instalarFiltroDigitos(campo, () -> maximo);
-        campo.setToolTipText("Solo números: DNI 8 dígitos, pasaporte 9 dígitos, CE 20 dígitos");
+        campo.setToolTipText("Solo números: DNI 8 dígitos, pasaporte 9 dígitos, CE 10 dígitos");
     }
 
-    /** Verifica que un documento buscado tenga 8 (DNI), 9 (PAS) o 20 (CE) digitos. */
+    /** Verifica que un documento buscado tenga 8 (DNI), 9 (PAS) o 10 (CE) digitos. */
     public static boolean largoDocumentoValido(String doc)
     {
-        return doc != null && doc.matches("^([0-9]{8,9}|[0-9]{20})$");
+        return doc != null && doc.matches("^([0-9]{8,10})$");
     }
 
     /** Mensaje comun cuando el documento buscado no tiene un largo valido. */
     public static final String MENSAJE_LARGO_DOCUMENTO =
-            "El documento debe tener 8 dígitos (DNI), 9 dígitos (pasaporte) o 20 dígitos (CE).";
+            "El documento debe tener 8 dígitos (DNI), 9 dígitos (pasaporte) o 10 dígitos (CE).";
 
     /** Texto de etiqueta con el asterisco rojo de campo obligatorio. */
     public static String textoObligatorio(String texto)

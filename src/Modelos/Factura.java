@@ -24,6 +24,12 @@ public class Factura
         //fecha de emision: hoy
         this.fecha_emision = LocalDate.now();
     }
+    
+    public Factura(String codigo, LocalDate fechaEmision)
+    {
+        this.cod_factura = codigo;
+        this.fecha_emision = fechaEmision;
+    }
 
     public String getCod_factura() {
         return cod_factura;

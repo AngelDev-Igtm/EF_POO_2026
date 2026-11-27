@@ -1,11 +1,14 @@
 package primer_avance_poo;
 
-import Vista.MenuPrincipal;
+import Vista.FrmLogin;
 
-public class PRIMER_AVANCE_POO {
-
-    public static void main(String[] args) 
+public class PRIMER_AVANCE_POO
+{
+    public static void main(String[] args)
     {
-        MenuPrincipal m = new MenuPrincipal();
+        java.awt.EventQueue.invokeLater(() ->
+        {
+            new FrmLogin().setVisible(true);
+        });
     }
 }
