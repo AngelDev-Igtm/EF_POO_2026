@@ -343,6 +343,7 @@ La instalación completa en un segundo equipo queda pendiente de validación.
 | Facultad | Ingeniería |
 | Carrera | Ingeniería de Sistemas Computacionales |
 | Curso | Técnicas de Programación Orientada a Objetos |
+| Docente a cargo | Ing. Manuel Eduardo Torrel Villanueva |
 | Ciclo | V ciclo |
 | Periodo académico | 2026-II |
 | Sede | Cajamarca, Perú |
