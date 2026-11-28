@@ -1,0 +1,9 @@
+/build/
+/dist/
+/nbproject/private/
+reporte_*.txt
+*.class
+*.bak
+*.mdf
+*.ldf
+.env
